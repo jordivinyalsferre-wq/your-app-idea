@@ -91,7 +91,6 @@ function Today({ name }: { name: string }) {
             <div className="text-xs text-muted-foreground mt-1.5">{due.length === 0 ? "Comença creant un hàbit" : pct === 1 ? "Has tancat el dia." : "Petites passes, grans canvis."}</div>
           </div>
         </div>
-        </div>
       </div>
 
       <div className="px-5 pt-2">
