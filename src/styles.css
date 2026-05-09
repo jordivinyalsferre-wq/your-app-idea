@@ -38,76 +38,66 @@
   --color-gold: var(--gold);
   --color-stone: var(--stone);
   --color-stone-deep: var(--stone-deep);
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Dark by default — modern night with sunset accents */
 :root {
   --radius: 1.25rem;
 
-  /* Sunset / dawn palette inspired by Olympia */
-  --background: oklch(0.965 0.02 75);          /* warm stone cream */
-  --foreground: oklch(0.22 0.03 40);           /* deep stone */
-  --card: oklch(0.985 0.014 78);
-  --card-foreground: oklch(0.22 0.03 40);
-  --popover: oklch(0.985 0.014 78);
-  --popover-foreground: oklch(0.22 0.03 40);
+  --background: oklch(0.16 0.018 285);          /* deep night */
+  --foreground: oklch(0.97 0.008 80);           /* warm white */
+  --card: oklch(0.21 0.022 285);                /* elevated surface */
+  --card-foreground: oklch(0.97 0.008 80);
+  --popover: oklch(0.22 0.022 285);
+  --popover-foreground: oklch(0.97 0.008 80);
 
-  --primary: oklch(0.68 0.18 42);              /* sunset orange */
-  --primary-foreground: oklch(0.99 0.005 80);
-  --secondary: oklch(0.93 0.04 60);            /* warm beige */
-  --secondary-foreground: oklch(0.28 0.03 40);
-  --muted: oklch(0.93 0.025 70);
-  --muted-foreground: oklch(0.5 0.04 50);
-  --accent: oklch(0.78 0.13 20);               /* dawn rose */
-  --accent-foreground: oklch(0.22 0.03 40);
+  --primary: oklch(0.74 0.18 42);               /* sunset orange */
+  --primary-foreground: oklch(0.16 0.018 285);
+  --secondary: oklch(0.26 0.025 285);
+  --secondary-foreground: oklch(0.97 0.008 80);
+  --muted: oklch(0.24 0.022 285);
+  --muted-foreground: oklch(0.66 0.025 280);
+  --accent: oklch(0.78 0.13 20);                /* dawn rose */
+  --accent-foreground: oklch(0.16 0.018 285);
 
-  --destructive: oklch(0.6 0.22 27);
+  --destructive: oklch(0.68 0.2 24);
   --destructive-foreground: oklch(0.99 0.005 80);
-  --border: oklch(0.88 0.025 70);
-  --input: oklch(0.9 0.02 70);
-  --ring: oklch(0.68 0.18 42);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.74 0.18 42);
 
-  /* Signature tokens */
-  --sunset: oklch(0.7 0.19 45);                /* taronja capvespre */
-  --dawn: oklch(0.82 0.11 18);                 /* rosa alba */
-  --mauve: oklch(0.55 0.12 320);               /* malva */
-  --gold: oklch(0.75 0.13 75);                 /* or subtil */
-  --stone: oklch(0.95 0.02 75);
-  --stone-deep: oklch(0.22 0.03 40);
+  --sunset: oklch(0.74 0.19 45);
+  --dawn: oklch(0.82 0.13 18);
+  --mauve: oklch(0.62 0.16 320);
+  --gold: oklch(0.8 0.14 80);
+  --stone: oklch(0.97 0.008 80);
+  --stone-deep: oklch(0.16 0.018 285);
 
-  --gradient-sunset: linear-gradient(135deg, oklch(0.78 0.18 55) 0%, oklch(0.72 0.18 30) 45%, oklch(0.55 0.14 320) 100%);
-  --gradient-dawn: linear-gradient(180deg, oklch(0.92 0.06 55) 0%, oklch(0.86 0.1 25) 60%, oklch(0.7 0.13 330) 100%);
-  --shadow-soft: 0 1px 2px oklch(0.3 0.05 40 / 0.05), 0 8px 24px -8px oklch(0.3 0.05 40 / 0.12);
-  --shadow-glow: 0 10px 40px -10px oklch(0.7 0.19 45 / 0.45);
-}
-
-.dark {
-  --background: oklch(0.18 0.025 290);
-  --foreground: oklch(0.96 0.015 75);
-  --card: oklch(0.23 0.03 290);
-  --card-foreground: oklch(0.96 0.015 75);
-  --popover: oklch(0.23 0.03 290);
-  --popover-foreground: oklch(0.96 0.015 75);
-  --primary: oklch(0.72 0.18 42);
-  --primary-foreground: oklch(0.18 0.025 290);
-  --secondary: oklch(0.28 0.04 290);
-  --secondary-foreground: oklch(0.96 0.015 75);
-  --muted: oklch(0.28 0.04 290);
-  --muted-foreground: oklch(0.7 0.03 75);
-  --accent: oklch(0.72 0.13 20);
-  --accent-foreground: oklch(0.18 0.025 290);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.72 0.18 42);
+  --gradient-sunset: linear-gradient(135deg, oklch(0.82 0.18 60) 0%, oklch(0.72 0.2 30) 50%, oklch(0.55 0.18 320) 100%);
+  --gradient-dawn: linear-gradient(180deg, oklch(0.4 0.1 30) 0%, oklch(0.3 0.08 320) 100%);
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
+  --shadow-glow: 0 8px 32px -8px oklch(0.74 0.19 45 / 0.55);
 }
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-  h1,h2,h3,h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  html, body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
 }
 
+@utility font-display { font-family: var(--font-display); }
 @utility bg-gradient-sunset { background-image: var(--gradient-sunset); }
 @utility bg-gradient-dawn { background-image: var(--gradient-dawn); }
 @utility text-gradient-sunset {
