@@ -1,51 +1,46 @@
+## Temple en runes 3D com a indicador de progrés
 
-# Olympía — Habit tracker PWA
+Substituïm l'anell de progrés de la home per una escena 3D d'un temple grec en runes que es va reconstruint a mesura que es completen els hàbits del dia.
 
-App mòbil instal·lable per fer seguiment d'hàbits diaris. Estètica moderna d'app actual (no "vintage"), amb una direcció visual inspirada en el jaciment d'Olímpia banyat per la llum de l'**alba i el capvespre**: pedra càlida, ombres llargues, cels degradats taronja-rosa-malva, ruïnes silueta.
+### Concepte visual
 
-## Direcció visual
+- Un petit temple dòric estilitzat (estil Olympia) amb 6 columnes i un frontó.
+- A 0% completat: només bases de columnes i pedres escampades pel terra.
+- Cada hàbit completat reconstrueix una "peça": tambors de columna pugen, capitells s'assenten, i finalment l'arquitrau i el frontó apareixen.
+- Al 100%: temple complet, il·luminat amb la llum daurada del capvespre, lleugera partícula/glow.
+- Càmera amb òrbita lenta automàtica (molt subtil) i lleuger paral·laxi al moviment del dit.
+- Cel de fons amb el degradat sunset → mauve ja existent al sistema de disseny.
 
-- **Modern app feel**: cards arrodonides (radius generós), spacing ampli, microinteraccions suaus, tab bar inferior fixa, haptics visuals, sense ornament recarregat.
-- **Paleta capvespre/alba** (tokens en `oklch` a `src/styles.css`):
-  - Fons: pedra càlida `#f5ede2` (light) / blau nit `#16131f` (dark, opcional v2).
-  - Accent primari: taronja capvespre `#e87a3e`.
-  - Accent secundari: rosa alba `#f4a4a4` → malva `#9b6b9e`.
-  - Text: pedra fosca `#2a2520`.
-  - Or subtil `#c89b4a` per ratxes/destacats.
-- **Gradient signatura**: degradat capvespre (taronja → rosa → malva) usat al header, anells de progrés i CTA principals.
-- **Tipografia**: *Fraunces* (display, modern serif amb caràcter, evoca pedra esculpida) + *Inter* (UI/cos).
-- **Hero d'onboarding**: imatge generada de les columnes d'Olímpia al capvespre amb overlay degradat.
-- **Iconografia**: Lucide lineal, fina i moderna. Sense iconos "antics" literals.
+### Tecnologia
 
-## Funcionalitats v1
+- `three` + `@react-three/fiber` + `@react-three/drei` (per `OrbitControls` deshabilitat, `Environment`, `Float`, `Html`).
+- Geometria construïda per codi (cilindres per columnes, box per estilòbat i arquitrau, prisma triangular pel frontó). Sense models externs — manté el bundle lleuger i el carregat instantani.
+- Animacions amb `framer-motion-3d` o interpolació manual amb `useFrame` (lerp de posició/opacitat) perquè la transició entre hàbits sigui suau (~600ms).
+- Materials `MeshStandardMaterial` amb color pedra càlida + emissive subtil sunset al 100%.
 
-1. **Onboarding (1 pantalla)** — hero d'Olímpia al capvespre, claim curt, CTA "Comença".
-2. **Avui** (home) — saluda segons l'hora ("Bon capvespre"), llista d'hàbits del dia amb toggle de check, anell de progrés diari amb gradient capvespre.
-3. **Crear/editar hàbit** — bottom sheet: nom, emoji o icona, color d'accent, freqüència (diària o dies de la setmana), recordatori (hora indicativa, sense push v1).
-4. **Detall d'hàbit** — calendari mensual heatmap, ratxa actual i màxima, % constància 30 dies.
-5. **Estadístiques** — resum setmanal, hàbit més fort, total de check-ins.
-6. **Tab bar inferior**: Avui · Hàbits · Estadístiques · Perfil.
-7. **PWA instal·lable** — `manifest.json` amb `display: "standalone"`, icones 192/512, theme color, splash. **Sense service worker** (evita problemes de cache a la preview de Lovable; instal·lable igualment).
-8. **Persistència local** — `localStorage` via hook `useHabits`. Sense login.
+### Component nou
 
-## Estructura tècnica
+`src/components/TempleProgress.tsx`
+- Props: `value: number` (0–1), `done: number`, `total: number`.
+- Mapeja `value` a un nombre de "peces" reconstruïdes (6 columnes + arquitrau + frontó = 8 etapes, repartides proporcionalment).
+- Dimensions: ~280px d'alçada, ample 100% del card.
 
-- Rutes TanStack:
-  - `/` — Avui
-  - `/habits` — llistat i gestió
-  - `/habits/$id` — detall
-  - `/stats` — estadístiques
-  - `/profile` — preferències (nom, reset dades)
-- Layout mòbil-first amb `max-w-md mx-auto` i tab bar fixa inferior.
-- Components clau: `HabitCard`, `ProgressRing`, `HeatmapCalendar`, `BottomTabBar`, `CreateHabitSheet`, `SunsetGradient`.
-- Animacions: `framer-motion` per transicions de check, sheets i canvi de pantalla.
-- Imatge hero: generada amb el tool d'imatges (columnes d'Olímpia, llum daurada de capvespre).
+### Canvis a la home (`src/routes/index.tsx`)
 
-## Fora d'abast (v2)
+- Substituïm el bloc `ProgressRing + textos` dins del card d'avui per `<TempleProgress />` ocupant tot el card.
+- A sota del canvas, en una franja, es mantenen els números: `doneCount/total · {pct}%` i el missatge motivacional.
+- El card creix una mica d'alçada per acomodar l'escena.
 
-- Mode fosc complet (alba vs nit estrellada).
-- Sincronització multi-dispositiu (requeriria Lovable Cloud).
-- Notificacions push reals.
-- Compartir progrés.
+### Rendiment / mòbil
 
-Quan aprovis, ho munto i et passo els passos per instal·lar-la al mòbil ("Afegeix a la pantalla d'inici").
+- `dpr={[1, 2]}`, `frameloop="demand"` quan no hi ha animació activa, `gl={{ antialias: true, alpha: true }}`.
+- Una sola `directionalLight` (sol de capvespre) + `ambientLight` baix.
+- Sense ombres dinàmiques (massa cost a mòbil); ombra falsa amb un disc fosc sota el temple.
+
+### Fora d'abast
+
+- Models GLB realistes, textures de pedra fotogràfiques.
+- Interacció amb gestos per rotar manualment.
+- Reconstrucció animada per cada toggle individual amb partícules de pols (es pot afegir a v2 si agrada el resultat base).
+
+Quan aprovis, instal·lo `three` + react-three i munto el component.
