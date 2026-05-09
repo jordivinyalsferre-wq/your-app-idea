@@ -9,15 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StatsRouteImport } from './routes/stats'
+import { Route as TempleRouteImport } from './routes/temple'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as HabitsRouteImport } from './routes/habits'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HabitsIdRouteImport } from './routes/habits.$id'
 
-const StatsRoute = StatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
+const TempleRoute = TempleRouteImport.update({
+  id: '/temple',
+  path: '/temple',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -45,14 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/habits': typeof HabitsRouteWithChildren
   '/profile': typeof ProfileRoute
-  '/stats': typeof StatsRoute
+  '/temple': typeof TempleRoute
   '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/habits': typeof HabitsRouteWithChildren
   '/profile': typeof ProfileRoute
-  '/stats': typeof StatsRoute
+  '/temple': typeof TempleRoute
   '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRoutesById {
@@ -60,31 +60,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/habits': typeof HabitsRouteWithChildren
   '/profile': typeof ProfileRoute
-  '/stats': typeof StatsRoute
+  '/temple': typeof TempleRoute
   '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/habits' | '/profile' | '/stats' | '/habits/$id'
+  fullPaths: '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/habits' | '/profile' | '/stats' | '/habits/$id'
-  id: '__root__' | '/' | '/habits' | '/profile' | '/stats' | '/habits/$id'
+  to: '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
+  id: '__root__' | '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HabitsRoute: typeof HabitsRouteWithChildren
   ProfileRoute: typeof ProfileRoute
-  StatsRoute: typeof StatsRoute
+  TempleRoute: typeof TempleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/stats': {
-      id: '/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof StatsRouteImport
+    '/temple': {
+      id: '/temple'
+      path: '/temple'
+      fullPath: '/temple'
+      preLoaderRoute: typeof TempleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -133,7 +133,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HabitsRoute: HabitsRouteWithChildren,
   ProfileRoute: ProfileRoute,
-  StatsRoute: StatsRoute,
+  TempleRoute: TempleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

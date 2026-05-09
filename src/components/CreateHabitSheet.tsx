@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { Habit, HabitFrequency } from "@/hooks/useHabits";
+import { Habit, HabitFrequency, Pillar, PILLARS } from "@/hooks/useHabits";
 
 const COLORS = ["sunset", "dawn", "mauve", "gold"] as const;
 const colorVar: Record<string, string> = {
@@ -24,6 +24,7 @@ export function CreateHabitSheet({ open, onClose, onSave, initial }: Props) {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("🏛️");
   const [color, setColor] = useState<string>("sunset");
+  const [pillar, setPillar] = useState<Pillar>("soma");
   const [mode, setMode] = useState<"daily" | "weekly">("daily");
   const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
@@ -32,6 +33,7 @@ export function CreateHabitSheet({ open, onClose, onSave, initial }: Props) {
       setName(initial?.name ?? "");
       setEmoji(initial?.emoji ?? "🏛️");
       setColor(initial?.color ?? "sunset");
+      setPillar(initial?.pillar ?? "soma");
       if (initial?.frequency && initial.frequency !== "daily") {
         setMode("weekly"); setDays(initial.frequency);
       } else { setMode("daily"); setDays([1,2,3,4,5]); }
@@ -41,7 +43,7 @@ export function CreateHabitSheet({ open, onClose, onSave, initial }: Props) {
   function submit() {
     if (!name.trim()) return;
     const frequency: HabitFrequency = mode === "daily" ? "daily" : days.sort();
-    onSave({ name: name.trim(), emoji, color, frequency, reminder: null });
+    onSave({ name: name.trim(), emoji, color, pillar, frequency, reminder: null });
     onClose();
   }
 
@@ -88,6 +90,17 @@ export function CreateHabitSheet({ open, onClose, onSave, initial }: Props) {
                   <button key={c} onClick={() => setColor(c)}
                     className={`h-10 w-10 rounded-2xl ring-offset-2 ring-offset-card transition-all ${color === c ? "ring-2 ring-foreground" : ""}`}
                     style={{ background: colorVar[c] }} />
+                ))}
+              </div>
+
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-5 block">Pilar</label>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {PILLARS.map((p) => (
+                  <button key={p.id} onClick={() => setPillar(p.id)}
+                    className={`py-2.5 rounded-2xl border text-center ${pillar === p.id ? "border-primary bg-primary/10" : "border-border bg-background"}`}>
+                    <div className="text-xs font-semibold tracking-wide">{p.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.meaning}</div>
+                  </button>
                 ))}
               </div>
 

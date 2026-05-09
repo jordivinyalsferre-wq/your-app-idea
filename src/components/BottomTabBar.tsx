@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Sun, ListChecks, BarChart3, User } from "lucide-react";
+import { Sun, ListChecks, Columns3, User } from "lucide-react";
 
 const tabs = [
   { to: "/", icon: Sun, label: "Avui" },
   { to: "/habits", icon: ListChecks, label: "Hàbits" },
-  { to: "/stats", icon: BarChart3, label: "Estadístiques" },
+  { to: "/temple", icon: Columns3, label: "Temple" },
   { to: "/profile", icon: User, label: "Perfil" },
 ] as const;
 
