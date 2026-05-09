@@ -24,7 +24,10 @@ function TemplePage() {
 
   const totals: Record<Pillar, number> = useMemo(() => {
     const t: Record<Pillar, number> = { soma: 0, nous: 0, theoria: 0, kosmos: 0 };
-    for (const h of habits) t[h.pillar] = (t[h.pillar] ?? 0) + h.completions.length;
+    for (const h of habits) {
+      const k = (h.pillar ?? "soma") as Pillar;
+      t[k] = (t[k] ?? 0) + h.completions.length;
+    }
     return t;
   }, [habits]);
 
