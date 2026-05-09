@@ -1,0 +1,16 @@
+{
+  "name": "Olympía — Hàbits",
+  "short_name": "Olympía",
+  "description": "Seguiment d'hàbits inspirat en Olímpia, entre l'alba i el capvespre.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6ecdc",
+  "theme_color": "#e87a3e",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
