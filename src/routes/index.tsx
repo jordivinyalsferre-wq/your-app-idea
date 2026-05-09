@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Sparkles } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
-import { ProgressRing } from "@/components/ProgressRing";
+import { TempleProgress } from "@/components/TempleProgress";
 import { HabitCard } from "@/components/HabitCard";
 import { CreateHabitSheet } from "@/components/CreateHabitSheet";
 import { greeting, isDueToday, todayISO, useHabits, useProfile } from "@/hooks/useHabits";
@@ -78,17 +78,23 @@ function Today({ name }: { name: string }) {
           <h1 className="font-display text-3xl mt-1.5">{greeting()}, <span className="text-gradient-sunset">{name}</span>.</h1>
         </div>
 
-        <div className="relative mt-6 flex items-center gap-5 rounded-3xl bg-card border border-border p-5 shadow-soft">
-          <ProgressRing value={pct} size={108} stroke={11}>
-            <div className="text-center">
-              <div className="font-display text-2xl leading-none">{doneCount}<span className="text-muted-foreground text-sm">/{due.length}</span></div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">avui</div>
+        <div className="relative mt-6 rounded-3xl bg-card border border-border overflow-hidden shadow-soft">
+          <div
+            className="absolute inset-0 opacity-60"
+            style={{ background: "linear-gradient(180deg, oklch(0.28 0.06 30 / 0.6) 0%, oklch(0.2 0.05 320 / 0.4) 60%, transparent 100%)" }}
+          />
+          <TempleProgress value={pct} className="relative" />
+          <div className="relative px-5 pb-5 pt-1 flex items-end justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Progrés del dia</div>
+              <div className="font-display text-2xl mt-1">
+                {doneCount}<span className="text-muted-foreground text-base">/{due.length}</span>
+                <span className="ml-2 text-gradient-sunset">{Math.round(pct * 100)}%</span>
+              </div>
             </div>
-          </ProgressRing>
-          <div className="flex-1">
-            <div className="text-sm text-muted-foreground">Progrés del dia</div>
-            <div className="font-display text-xl mt-1">{Math.round(pct * 100)}%</div>
-            <div className="text-xs text-muted-foreground mt-1.5">{due.length === 0 ? "Comença creant un hàbit" : pct === 1 ? "Has tancat el dia." : "Petites passes, grans canvis."}</div>
+            <div className="text-xs text-muted-foreground text-right max-w-[45%]">
+              {due.length === 0 ? "Comença creant un hàbit" : pct === 1 ? "Temple reconstruït." : "Cada hàbit, una pedra més."}
+            </div>
           </div>
         </div>
       </div>
