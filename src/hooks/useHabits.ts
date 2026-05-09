@@ -2,11 +2,20 @@ import { useCallback, useEffect, useState } from "react";
 
 export type HabitFrequency = "daily" | number[]; // number[] = ISO weekdays 1..7
 
+export type Pillar = "soma" | "nous" | "theoria" | "kosmos";
+export const PILLARS: { id: Pillar; label: string; meaning: string }[] = [
+  { id: "soma", label: "Soma", meaning: "Cos" },
+  { id: "nous", label: "Nous", meaning: "Ment" },
+  { id: "theoria", label: "Theoria", meaning: "Contemplació" },
+  { id: "kosmos", label: "Kosmos", meaning: "Ordre" },
+];
+
 export type Habit = {
   id: string;
   name: string;
   emoji: string;
   color: string; // token name: sunset | dawn | mauve | gold
+  pillar: Pillar;
   frequency: HabitFrequency;
   reminder?: string | null; // "HH:mm"
   createdAt: string; // ISO date
@@ -16,7 +25,7 @@ export type Habit = {
 const KEY = "olympia.habits.v1";
 const PROFILE_KEY = "olympia.profile.v1";
 
-export type Profile = { name: string; onboarded: boolean };
+export type Profile = { name: string; onboarded: boolean; hestia: boolean };
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -122,7 +131,10 @@ export function useHabits() {
 }
 
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile>(() => read<Profile>(PROFILE_KEY, { name: "", onboarded: false }));
+  const [profile, setProfile] = useState<Profile>(() => {
+    const p = read<Partial<Profile>>(PROFILE_KEY, {});
+    return { name: p.name ?? "", onboarded: p.onboarded ?? false, hestia: p.hestia ?? true };
+  });
   useEffect(() => { write(PROFILE_KEY, profile); }, [profile]);
   return { profile, setProfile };
 }
