@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { ProgressRing } from "@/components/ProgressRing";
-import { HabitCard } from "@/components/HabitCard";
-import { CreateHabitSheet } from "@/components/CreateHabitSheet";
-import { greeting, isDueToday, todayISO, useHabits, useProfile } from "@/hooks/useHabits";
+import { greeting, isPracticeDueToday, todayISO, usePractices, useProfile } from "@/hooks/useHabits";
+import { PRACTICES, PILLAR_META } from "@/data/practices";
 import heroImg from "@/assets/olympia-sunset.jpg";
 
 export const Route = createFileRoute("/")({
@@ -35,7 +34,7 @@ function Onboarding({ onDone }: { onDone: (name: string) => void }) {
       </div>
       <div className="px-6 pt-7">
         <p className="text-muted-foreground text-[15px] leading-relaxed">
-          Inspirat en el santuari d'Olímpia entre l'alba i el capvespre. Crea petits rituals i mira'ls créixer.
+          Inspirat en el santuari d'Olímpia entre l'alba i el capvespre. Tria els teus vots, sostén la mesura.
         </p>
         <label className="mt-7 block text-xs font-medium text-muted-foreground uppercase tracking-wider">El teu nom</label>
         <input
@@ -55,24 +54,23 @@ function Onboarding({ onDone }: { onDone: (name: string) => void }) {
 }
 
 function Today({ name }: { name: string }) {
-  const navigate = useNavigate();
-  const { habits, toggleToday } = useHabits();
-  const [open, setOpen] = useState(false);
-  const { addHabit } = useHabits();
-
-  const due = useMemo(() => habits.filter((h) => isDueToday(h)), [habits]);
+  const { states, completeToday } = usePractices();
   const today = todayISO();
-  const doneCount = due.filter((h) => h.completions.includes(today)).length;
+
+  const due = useMemo(
+    () => PRACTICES
+      .map((p) => ({ practice: p, state: states[p.id] }))
+      .filter(({ state }) => state && isPracticeDueToday(state)),
+    [states],
+  );
+  const doneCount = due.filter(({ state }) => state!.completions.includes(today)).length;
   const pct = due.length === 0 ? 0 : doneCount / due.length;
   const date = new Date().toLocaleDateString("ca-ES", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <MobileShell>
       <div className="relative px-6 pt-12 pb-8 overflow-hidden">
-        <div
-          className="absolute -top-24 -right-24 h-72 w-72 rounded-full opacity-40 blur-3xl"
-          style={{ background: "var(--gradient-sunset)" }}
-        />
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full opacity-40 blur-3xl" style={{ background: "var(--gradient-sunset)" }} />
         <div className="relative">
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{date}</div>
           <h1 className="font-display text-3xl mt-1.5">{greeting()}, <span className="text-gradient-sunset">{name}</span>.</h1>
@@ -86,43 +84,52 @@ function Today({ name }: { name: string }) {
             </div>
           </ProgressRing>
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground">Progrés del dia</div>
+            <div className="text-sm text-muted-foreground">L'ofrena del dia</div>
             <div className="font-display text-xl mt-1">{Math.round(pct * 100)}%</div>
-            <div className="text-xs text-muted-foreground mt-1.5">{due.length === 0 ? "Comença creant un hàbit" : pct === 1 ? "Has tancat el dia." : "Petites passes, grans canvis."}</div>
+            <div className="text-xs text-muted-foreground mt-1.5">
+              {due.length === 0 ? "Consagra una pràctica al catàleg." : pct === 1 ? "Vots complerts." : "Mesura, no excés."}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="px-5 pt-2">
         <div className="flex items-center justify-between px-1 mb-3">
-          <h2 className="font-display text-xl">Els teus rituals</h2>
-          <button onClick={() => setOpen(true)} className="h-9 w-9 rounded-full bg-gradient-sunset text-white flex items-center justify-center shadow-glow active:scale-95 transition-transform">
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-          </button>
+          <h2 className="font-display text-xl">Vots d'avui</h2>
         </div>
 
         {due.length === 0 ? (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="rounded-3xl border border-dashed border-border p-8 text-center">
-            <div className="text-3xl">🏛️</div>
-            <p className="mt-2 font-display text-lg">Tot per construir.</p>
-            <p className="text-sm text-muted-foreground mt-1">Crea el teu primer hàbit per començar.</p>
+            <p className="font-display text-lg">Cap pràctica activa.</p>
+            <p className="text-sm text-muted-foreground mt-1">Vés a <Link to="/habits" className="text-gradient-sunset font-semibold">La Pràctica</Link> i consagra la primera.</p>
           </motion.div>
         ) : (
-          <div className="space-y-2.5">
-            {due.map((h) => (
-              <HabitCard key={h.id}
-                habit={h}
-                done={h.completions.includes(today)}
-                onToggle={() => toggleToday(h.id)}
-                onClick={() => navigate({ to: "/habits/$id", params: { id: h.id } })}
-              />
-            ))}
+          <div className="space-y-2">
+            {due.map(({ practice, state }) => {
+              const done = state!.completions.includes(today);
+              return (
+                <div key={practice.id} className="flex items-center gap-3 rounded-2xl bg-card border border-border/70 px-4 py-3.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] truncate">{practice.name}</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 tracking-wide">
+                      {PILLAR_META[practice.pillar].label} · {state!.targetMinutes} min
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => completeToday(practice.id)}
+                    aria-label={done ? "Anul·lar ofrena" : "Consagrar avui"}
+                    className="h-10 w-10 rounded-xl border border-border flex items-center justify-center transition-all"
+                    style={done ? { background: "var(--gradient-sunset)", borderColor: "transparent", boxShadow: "var(--shadow-glow)" } : undefined}
+                  >
+                    {done && <Check className="h-4 w-4 text-white" strokeWidth={3} />}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
-
-      <CreateHabitSheet open={open} onClose={() => setOpen(false)} onSave={addHabit} />
     </MobileShell>
   );
 }
