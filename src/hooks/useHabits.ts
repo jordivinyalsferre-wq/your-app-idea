@@ -146,3 +146,64 @@ export function greeting(d = new Date()) {
   if (h < 19) return "Bona tarda";
   return "Bon capvespre";
 }
+
+// ============= Practices (curated catalog) =============
+
+export type PracticeState = {
+  practiceId: string;
+  isActive: boolean;
+  targetMinutes: number;
+  frequency: HabitFrequency;
+  completions: string[];
+};
+
+const PRACTICES_KEY = "olympia.practices.v1";
+
+function defaultState(id: string): PracticeState {
+  return { practiceId: id, isActive: false, targetMinutes: 10, frequency: "daily", completions: [] };
+}
+
+export function usePractices() {
+  const [states, setStates] = useState<Record<string, PracticeState>>(
+    () => read<Record<string, PracticeState>>(PRACTICES_KEY, {}),
+  );
+  useEffect(() => { write(PRACTICES_KEY, states); }, [states]);
+
+  const getState = useCallback((id: string): PracticeState => states[id] ?? defaultState(id), [states]);
+
+  const setState = useCallback((id: string, patch: Partial<PracticeState>) => {
+    setStates((prev) => {
+      const cur = prev[id] ?? defaultState(id);
+      return { ...prev, [id]: { ...cur, ...patch } };
+    });
+  }, []);
+
+  const toggleActive = useCallback((id: string) => {
+    setStates((prev) => {
+      const cur = prev[id] ?? defaultState(id);
+      return { ...prev, [id]: { ...cur, isActive: !cur.isActive } };
+    });
+  }, []);
+
+  const completeToday = useCallback((id: string, dateISO = todayISO()) => {
+    setStates((prev) => {
+      const cur = prev[id] ?? defaultState(id);
+      const has = cur.completions.includes(dateISO);
+      return {
+        ...prev,
+        [id]: {
+          ...cur,
+          completions: has ? cur.completions.filter((d) => d !== dateISO) : [...cur.completions, dateISO],
+        },
+      };
+    });
+  }, []);
+
+  return { states, getState, setState, toggleActive, completeToday };
+}
+
+export function isPracticeDueToday(s: PracticeState, date = new Date()) {
+  if (!s.isActive) return false;
+  if (s.frequency === "daily") return true;
+  return s.frequency.includes(isoWeekday(date));
+}
