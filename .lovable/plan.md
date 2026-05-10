@@ -1,46 +1,98 @@
-## Temple en runes 3D com a indicador de progrés
+## La Pràctica — Catàleg Tancat i Consagrat
 
-Substituïm l'anell de progrés de la home per una escena 3D d'un temple grec en runes que es va reconstruint a mesura que es completen els hàbits del dia.
+Reescriptura completa de la pantalla `/habits` (renombrada conceptualment a "La Pràctica") com a **catàleg immutable de 25 pràctiques sembrades**, sense creació lliure. L'usuari només pot **Activar/Desactivar** i parametritzar (minuts/freqüència).
 
-### Concepte visual
+---
 
-- Un petit temple dòric estilitzat (estil Olympia) amb 6 columnes i un frontó.
-- A 0% completat: només bases de columnes i pedres escampades pel terra.
-- Cada hàbit completat reconstrueix una "peça": tambors de columna pugen, capitells s'assenten, i finalment l'arquitrau i el frontó apareixen.
-- Al 100%: temple complet, il·luminat amb la llum daurada del capvespre, lleugera partícula/glow.
-- Càmera amb òrbita lenta automàtica (molt subtil) i lleuger paral·laxi al moviment del dit.
-- Cel de fons amb el degradat sunset → mauve ja existent al sistema de disseny.
+### 1. Model de dades (localStorage, sense backend)
 
-### Tecnologia
+Nou fitxer `src/data/practices.ts` — catàleg fix de 25 entrades, només lectura:
 
-- `three` + `@react-three/fiber` + `@react-three/drei` (per `OrbitControls` deshabilitat, `Environment`, `Float`, `Html`).
-- Geometria construïda per codi (cilindres per columnes, box per estilòbat i arquitrau, prisma triangular pel frontó). Sense models externs — manté el bundle lleuger i el carregat instantani.
-- Animacions amb `framer-motion-3d` o interpolació manual amb `useFrame` (lerp de posició/opacitat) perquè la transició entre hàbits sigui suau (~600ms).
-- Materials `MeshStandardMaterial` amb color pedra càlida + emissive subtil sunset al 100%.
+```ts
+export type Pillar = "soma" | "nous" | "theoria" | "kosmos" | "sophrosyne";
+export type Practice = {
+  id: string;        // slug fix, p.ex. "soma-dromos"
+  name: string;      // "Dromos"
+  pillar: Pillar;
+  description: string;
+  patron: string;    // "Hermes"
+};
+```
 
-### Component nou
+Distribució (5 per pilar):
+- **Soma** (Cos): Dromos/Hermes, Gymnasion/Hèracles, Hydor/Posidó, Trophé/Demèter, Hypnos/Hipnos
+- **Nous** (Ment): Anagnosis/Atena, Graphē/Cal·líope, Mnēmē/Mnemòsine, Logismos/Apol·lo, Dialogos/Sòcrates
+- **Theoria** (Contemplació): Hēsychia/Hèstia, Theōria/Urània, Euchē/Zeus, Skepsis/Heràclit, Anamnēsis/Plató
+- **Kosmos** (Ordre): Taxis/Apol·lo, Oikos/Hera, Chronos/Cronos, Ergon/Hefest, Koinōnia/Hèstia
+- **Sophrosyne** (Mesura): Nēsteia/Demèter, Sigē/Harpòcrates, Enkrateia/Sòfocles, Metron/Delfos, Apochē/Pitàgores
 
-`src/components/TempleProgress.tsx`
-- Props: `value: number` (0–1), `done: number`, `total: number`.
-- Mapeja `value` a un nombre de "peces" reconstruïdes (6 columnes + arquitrau + frontó = 8 etapes, repartides proporcionalment).
-- Dimensions: ~280px d'alçada, ample 100% del card.
+(Noms i patrons ja esbossats; el contingut definitiu es consolida al fitxer.)
 
-### Canvis a la home (`src/routes/index.tsx`)
+### 2. Estat de l'usuari
 
-- Substituïm el bloc `ProgressRing + textos` dins del card d'avui per `<TempleProgress />` ocupant tot el card.
-- A sota del canvas, en una franja, es mantenen els números: `doneCount/total · {pct}%` i el missatge motivacional.
-- El card creix una mica d'alçada per acomodar l'escena.
+Nova estructura paral·lela al catàleg, a `useHabits.ts`:
 
-### Rendiment / mòbil
+```ts
+type PracticeState = {
+  practiceId: string;
+  isActive: boolean;
+  targetMinutes: number;       // default 10
+  frequency: "daily" | number[];
+  completions: string[];       // YYYY-MM-DD
+};
+```
 
-- `dpr={[1, 2]}`, `frameloop="demand"` quan no hi ha animació activa, `gl={{ antialias: true, alpha: true }}`.
-- Una sola `directionalLight` (sol de capvespre) + `ambientLight` baix.
-- Sense ombres dinàmiques (massa cost a mòbil); ombra falsa amb un disc fosc sota el temple.
+- `usePractices()`: retorna `{ catalog, states, toggleActive, setParams, complete }`.
+- Persistència `olympia.practices.v1`.
+- Migració: les `Habit` antigues queden ignorades (es preserva el localStorage però no es mostra). El home (`/`) i `/temple` passen a llegir `states` actius.
 
-### Fora d'abast
+### 3. Pantalla `/habits` → "La Pràctica"
 
-- Models GLB realistes, textures de pedra fotogràfiques.
-- Interacció amb gestos per rotar manualment.
-- Reconstrucció animada per cada toggle individual amb partícules de pols (es pot afegir a v2 si agrada el resultat base).
+Reescriptura completa de `src/routes/habits.tsx`:
 
-Quan aprovis, instal·lo `three` + react-three i munto el component.
+- Fons `#050410`, text `#F0EBE0`, font Inter (ja al projecte).
+- Header sobri: petit kicker "ΚΑΤΑΛΟΓΟΣ", títol "La Pràctica", sense botó `+`.
+- 5 seccions verticals, una per Pilar. Cada secció:
+  - Títol pilar en versaletes amb la traducció minúscula al costat (p.ex. `SOMA · Cos`).
+  - Línia divisòria 1px `#1a1830`.
+  - Llista de 5 pràctiques. Cada fila:
+    - Nom + patró petit a sota (`Hermes`).
+    - Toggle switch minimalista a la dreta: actiu `#F0A05A`, inactiu `#6A5E4D`. Sense ombres, sense rebot.
+  - En activar, s'expandeix sota la fila un panell **pla, sense vora**:
+    - "Minuts": input numèric net (sense fletxes, alineat a la dreta).
+    - "Freqüència": Diari / Dies (chips Dl–Dg minimalistes).
+  - Sense botó "desa": canvis instantanis a `states`.
+
+### 4. Lèxic i guardarails
+
+- Substituir tot "Hàbit"/"Add task"/"Done" per **"Pràctica"**, **"Activa la pràctica"**, **"Consagra"**.
+- Eliminar `CreateHabitSheet` de la navegació de `/habits` (es manté el fitxer per `/habits/$id` si convé, o es retira).
+- Sense colors d'etiqueta, sense barres de progrés, sense swipe-to-delete, sense emojis a aquesta pantalla.
+
+### 5. Ajustos col·laterals
+
+- `BottomTabBar`: etiqueta "Hàbits" → "Pràctica".
+- `/` (home): la llista de "avui" passa a iterar pràctiques actives `isDueToday`. Targetes simplificades (sense emoji ni color tag, només nom + toggle de completar).
+- `/temple`: `totals[pillar]` ara compta completions de pràctiques actives per pilar; afegir cinquena columna `sophrosyne`.
+- Eliminar selector de "Pilar" lliure de `CreateHabitSheet` (ja no s'usa per crear).
+
+### 6. Detalls tècnics
+
+- Tot client-side (localStorage). Sense Lovable Cloud.
+- Tipografia: assegurar que `font-sans` resol a Inter a `styles.css` (ja és el cas).
+- Els components UI shadcn no s'usen aquí — toggle i inputs custom per mantenir l'austeritat.
+
+---
+
+### Fitxers afectats
+
+- **Nou**: `src/data/practices.ts`
+- **Nou**: `src/components/PracticeRow.tsx` (fila + panell expandit)
+- **Reescrit**: `src/routes/habits.tsx`
+- **Editat**: `src/hooks/useHabits.ts` (afegir `usePractices`, mantenir l'antic per compatibilitat)
+- **Editat**: `src/routes/index.tsx` (llegir pràctiques actives)
+- **Editat**: `src/routes/temple.tsx` (5 columnes, comptar per pràctica)
+- **Editat**: `src/components/BottomTabBar.tsx` (etiqueta)
+- **Possiblement retirat**: `CreateHabitSheet` del flux de `/habits`
+
+Vols que procedeixi així, o ajustes alguna cosa (noms del catàleg, distribució de patrons, mantenir compatibilitat amb hàbits antics al home)?
