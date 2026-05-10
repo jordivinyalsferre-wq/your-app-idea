@@ -1,9 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Sun, ListChecks, Columns3, User } from "lucide-react";
+import { Sun, ScrollText, Columns3, User } from "lucide-react";
 
 const tabs = [
   { to: "/", icon: Sun, label: "Avui" },
-  { to: "/habits", icon: ListChecks, label: "Hàbits" },
+  { to: "/habits", icon: ScrollText, label: "Pràctica" },
   { to: "/temple", icon: Columns3, label: "Temple" },
   { to: "/profile", icon: User, label: "Perfil" },
 ] as const;
@@ -17,11 +17,7 @@ export function BottomTabBar() {
           {tabs.map(({ to, icon: Icon, label }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
             return (
-              <Link
-                key={to}
-                to={to}
-                className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl transition-colors"
-              >
+              <Link key={to} to={to} className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl transition-colors">
                 <div className={`flex items-center justify-center h-9 w-9 rounded-2xl transition-all ${active ? "bg-gradient-sunset text-white shadow-glow" : "text-muted-foreground"}`}>
                   <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
                 </div>
