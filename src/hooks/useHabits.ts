@@ -2,13 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 
 export type HabitFrequency = "daily" | number[]; // number[] = ISO weekdays 1..7
 
-export type Pillar = "soma" | "nous" | "theoria" | "kosmos";
-export const PILLARS: { id: Pillar; label: string; meaning: string }[] = [
-  { id: "soma", label: "Soma", meaning: "Cos" },
-  { id: "nous", label: "Nous", meaning: "Ment" },
-  { id: "theoria", label: "Theoria", meaning: "Contemplació" },
-  { id: "kosmos", label: "Kosmos", meaning: "Ordre" },
-];
+export type { Pillar } from "@/data/practices";
+import { PILLAR_META, PILLAR_ORDER, type Pillar } from "@/data/practices";
+export const PILLARS = PILLAR_ORDER.map((id) => ({
+  id,
+  label: PILLAR_META[id].label,
+  meaning: PILLAR_META[id].meaning,
+}));
 
 export type Habit = {
   id: string;
