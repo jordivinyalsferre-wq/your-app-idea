@@ -13,7 +13,6 @@ import { Route as TempleRouteImport } from './routes/temple'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as HabitsRouteImport } from './routes/habits'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as HabitsIdRouteImport } from './routes/habits.$id'
 
 const TempleRoute = TempleRouteImport.update({
   id: '/temple',
@@ -35,45 +34,37 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HabitsIdRoute = HabitsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => HabitsRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/habits': typeof HabitsRouteWithChildren
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/temple': typeof TempleRoute
-  '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/habits': typeof HabitsRouteWithChildren
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/temple': typeof TempleRoute
-  '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/habits': typeof HabitsRouteWithChildren
+  '/habits': typeof HabitsRoute
   '/profile': typeof ProfileRoute
   '/temple': typeof TempleRoute
-  '/habits/$id': typeof HabitsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
+  fullPaths: '/' | '/habits' | '/profile' | '/temple'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
-  id: '__root__' | '/' | '/habits' | '/profile' | '/temple' | '/habits/$id'
+  to: '/' | '/habits' | '/profile' | '/temple'
+  id: '__root__' | '/' | '/habits' | '/profile' | '/temple'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  HabitsRoute: typeof HabitsRouteWithChildren
+  HabitsRoute: typeof HabitsRoute
   ProfileRoute: typeof ProfileRoute
   TempleRoute: typeof TempleRoute
 }
@@ -108,33 +99,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/habits/$id': {
-      id: '/habits/$id'
-      path: '/$id'
-      fullPath: '/habits/$id'
-      preLoaderRoute: typeof HabitsIdRouteImport
-      parentRoute: typeof HabitsRoute
-    }
   }
 }
 
-interface HabitsRouteChildren {
-  HabitsIdRoute: typeof HabitsIdRoute
-}
-
-const HabitsRouteChildren: HabitsRouteChildren = {
-  HabitsIdRoute: HabitsIdRoute,
-}
-
-const HabitsRouteWithChildren =
-  HabitsRoute._addFileChildren(HabitsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  HabitsRoute: HabitsRouteWithChildren,
+  HabitsRoute: HabitsRoute,
   ProfileRoute: ProfileRoute,
   TempleRoute: TempleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
