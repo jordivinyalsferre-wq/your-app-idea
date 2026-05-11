@@ -1,77 +1,39 @@
-## Reconstrucció: el jaciment d'Olímpia en estil Monument Valley
+# Fer visible el temple
 
-Substituïm la pantalla `/temple` (rectangles plans apilats) per una **escena isomètrica SVG** d'inspiració Monument Valley: paleta pastel mat, geometria neta, ombres planes, sense textura ni soroll. Punt de partida: **jaciment arqueològic** amb estilòbat trencat i tambors caiguts. Cada pilar (Soma, Nous, Theoria, Kosmos, Sophrosyne) controla **una de les cinc columnes** del temple.
+## Diagnòstic
 
-### Estètica
+A `/temple` actualment l'escena isomètrica es renderitza, però:
 
-- Projecció isomètrica pura (angles 30°). Tot dibuixat com a SVG vectorial — sense WebGL, sense imatges externes.
-- Paleta Monument Valley: cel lavanda fosc desaturat, pedra blanc trencat càlid, ombra malva, accent àmbar (Hestia), terra sorra apagada. Mat absolut, sense brillantors.
-- Animacions lentes i silencioses: aparició de cada peça amb fundit + petit desplaçament vertical (1.2s, easing suau). Mai bounce, mai partícules.
+1. El SVG ocupa només una franja central petita amb molt de buit a sobre i a sota.
+2. Amb 0 progrés, només es veuen tambors escampats i una columna caiguda — la silueta del temple no és reconeixible. L'usuari obre la pantalla i no entén què està construint.
+3. L'escena queda visualment desplaçada a la dreta perquè l'origen isomètric (`ORIGIN_X=200`) i la geometria de les 5 columnes (slots 0..4 × 1.6) no estan centrades respecte al `viewBox`.
 
-### Escena i mapeig de progrés
+## Canvis
 
-Cinc columnes dòriques alineades sobre l'estilòbat. Cada columna del temple = un pilar. Estats per columna en funció de `totals[pilar]`:
+### 1. `TempleScene.tsx` — temple fantasma + recentrat
 
-```
-0 completions   → tambor base mig enterrat a la sorra (runa)
-1               → 1 tambor col·locat
-2               → 2 tambors
-3               → 3 tambors (columna a mitja alçada)
-4               → 4 tambors
-5               → columna sencera + capitell dòric
-```
+- Calcular el centre real de la geometria (estilòbat) i recol·locar `ORIGIN_X`/`ORIGIN_Y` perquè el conjunt quedi centrat al `viewBox 0 0 400 320`. Ampliar el `viewBox` si cal (p. ex. `0 0 420 340`) per no retallar pediment ni acroteris.
+- **Estat fantasma**: dibuixar SEMPRE la silueta completa del temple (5 columnes senceres + arquitrau + frontó) amb opacitat baixa (~0.08–0.12) i sense ombres laterals — només contorn pla en `--temple-stone-shadow`. Per sobre, dibuixar les peces "reals" sòlides segons `counts`. Així l'usuari veu d'entrada el monument que està reconstruint.
+- Reduir la quantitat de tambors escampats inicials (de 5 a 3) i treure la columna caiguda horitzontal: distreuen i tapen la silueta.
+- Mantenir l'animació `temple-piece-in` només per a peces reals, mai per al fantasma.
 
-Quan **les 5 columnes arriben a 5+**, apareix l'**arquitrau** (biga horitzontal) amb fundit. Amb 7+ a totes, apareix el **frontó triangular**. Amb 10+ a totes, **acroteris** als extrems. Hestia (toggle) encén una flama àmbar mat al centre del frontó quan és `TRUE`.
+### 2. `routes/temple.tsx` — donar alçada a l'escena
 
-L'**estat 0 absolut** mostra: plataforma de pedra parcialment enrunada, tambors escampats al voltant de la base, una columna caiguda en horitzontal a primer terme. A mesura que progresses, la runa del terra es retira progressivament (els tambors escampats van desapareixent un a un a mesura que es "col·loquen" a les columnes).
+- Treure el `flex-1` ambigu i fixar un contenidor amb `aspect-ratio: 420/340` i `width: 100%`, centrat horitzontalment amb un padding lateral mínim. Així el SVG omple l'amplada del mòbil i té alçada proporcional, sense buits.
+- Reduir el padding superior del header (`pt-12` → `pt-8`) i el gap entre header i escena perquè el temple aparegui més amunt.
+- La graella de pilars i el toggle Hestia es queden tal com estan, sota l'escena.
 
-### Layout de la pantalla
+### 3. Sense canvis a
 
-```
-┌─────────────────────────┐
-│ ANASTYLOSIS             │  header petit existent
-│ El Temple               │
-├─────────────────────────┤
-│                         │
-│      [escena            │  ~60% alçada, fons gradient lavanda
-│       isomètrica        │  fosc → negre
-│       SVG]              │
-│                         │
-├─────────────────────────┤
-│ SOMA NOUS THE KOS SOP   │  llegenda 5 columnes amb count
-│ 003  001  000 005 002   │
-├─────────────────────────┤
-│ ▬▬▬▬▬ Hestia      TRUE  │  barra àmbar existent
-└─────────────────────────┘
-```
+- Lògica de pràctiques, dades, hooks.
+- Paleta `--temple-*` (ja funciona bé al render actual).
+- Mapeig de progrés per pilar.
 
-### Detalls tècnics
+## Restriccions (es mantenen)
 
-- **Nou component**: `src/components/TempleScene.tsx` — rep `counts: Record<Pillar, number>` i `hestia: boolean`. Renderitza un únic `<svg viewBox="0 0 400 320">` amb capes z-ordenades de fons cap al davant: cel → muntanyes llunyanes (siluetes planes) → terra/sorra → estilòbat → tambors caiguts (condicional) → 5 columnes (cadascuna composta per `<DoricColumn drums={n} />`) → arquitrau → frontó → acroteris → flama Hestia.
-- **Geometria isomètrica**: helpers `iso(x, y, z)` que projecten coordenades 3D a 2D amb la matriu isomètrica estàndard. Cada tambor és un cilindre baix dibuixat com 2 el·lipses + rectangle lateral amb tres tons de la paleta (top/light/shadow).
-- **Animació**: cada peça nova entra amb classe CSS `temple-piece-in` (1.2s fade + translateY(-6px) → 0). Delay escalonat petit (40ms) entre tambors d'una mateixa columna quan se'n col·loquen múltiples a la vegada.
-- **Paleta** (afegir tokens a `src/styles.css` dins `:root`):
-  - `--temple-sky-1: oklch(0.18 0.04 290)` (lavanda fosc)
-  - `--temple-sky-2: oklch(0.08 0.02 280)` (negre violaci)
-  - `--temple-stone-light: oklch(0.92 0.02 80)`
-  - `--temple-stone-mid: oklch(0.78 0.025 70)`
-  - `--temple-stone-shadow: oklch(0.55 0.03 300)` (malva)
-  - `--temple-sand: oklch(0.45 0.04 60)`
-  - `--temple-amber: oklch(0.78 0.15 70)` (Hestia)
-- **`src/routes/temple.tsx`**: substitueix el bloc actual de `<ColumnView>` × 5 i les `<style>` inline pel nou `<TempleScene counts={totals} hestia={profile.hestia} />`. Conserva header, llegenda inferior amb counts, i el toggle Hestia. Elimina la funció `ColumnView`.
-- **Fons** del `MobileShell`: gradient vertical `--temple-sky-1` → `--temple-sky-2` substituint el `#050410` pla.
+Sense confeti, sense glow neon, sense partícules, sense text "level up". El fantasma és un contorn estàtic, mat, gairebé imperceptible — només per orientar la mirada.
 
-### Restriccions estrictes (mantenim el to del manifest)
+## Arxius afectats
 
-- Prohibit: confeti, "level up", barres de progrés gamificades, números grans flotants, glows neon, partícules.
-- Tipografia: cap canvi.
-- Cap sound, cap haptic.
-- L'escena és **estàtica** un cop renderitzada — només transicions d'aparició quan canvia el comptatge.
-
-### Arxius afectats
-
-- crear `src/components/TempleScene.tsx`
+- editar `src/components/TempleScene.tsx`
 - editar `src/routes/temple.tsx`
-- editar `src/styles.css` (afegir tokens `--temple-*` i keyframe `temple-piece-in`)
-
-Cap canvi a la lògica de pràctiques, dades, ni a la resta de pantalles.
