@@ -14,9 +14,9 @@ const ORIGIN_X = VB_W / 2 - 8;
 const ORIGIN_Y = VB_H * 0.62;
 
 function iso(x: number, y: number, z: number) {
-  // Centre x around the temple midpoint (~2.3 in slot units)
-  const cx = x - 2.3;
-  const cy = y - 0.0;
+  // Centre around the temple midpoint
+  const cx = x - 3.6;
+  const cy = y + 0.1;
   return {
     x: ORIGIN_X + (cx - cy) * COS * U,
     y: ORIGIN_Y + ((cx + cy) * SIN - z) * U,
