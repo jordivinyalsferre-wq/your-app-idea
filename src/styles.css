@@ -32,72 +32,56 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-sunset: var(--sunset);
-  --color-dawn: var(--dawn);
-  --color-mauve: var(--mauve);
-  --color-gold: var(--gold);
-  --color-stone: var(--stone);
-  --color-stone-deep: var(--stone-deep);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Dark by default — modern night with sunset accents */
 :root {
   --radius: 1.25rem;
 
-  --background: oklch(0.16 0.018 285);          /* deep night */
-  --foreground: oklch(0.97 0.008 80);           /* warm white */
-  --card: oklch(0.21 0.022 285);                /* elevated surface */
-  --card-foreground: oklch(0.97 0.008 80);
-  --popover: oklch(0.22 0.022 285);
-  --popover-foreground: oklch(0.97 0.008 80);
+  /* Deep void — darker, more depth */
+  --background: oklch(0.10 0.02 280);
+  --foreground: oklch(0.95 0.008 80);
+  --card: oklch(0.14 0.02 280);
+  --card-foreground: oklch(0.95 0.008 80);
+  --popover: oklch(0.14 0.02 280);
+  --popover-foreground: oklch(0.95 0.008 80);
 
-  --primary: oklch(0.74 0.18 42);               /* sunset orange */
-  --primary-foreground: oklch(0.16 0.018 285);
-  --secondary: oklch(0.26 0.025 285);
-  --secondary-foreground: oklch(0.97 0.008 80);
-  --muted: oklch(0.24 0.022 285);
-  --muted-foreground: oklch(0.66 0.025 280);
-  --accent: oklch(0.78 0.13 20);                /* dawn rose */
-  --accent-foreground: oklch(0.16 0.018 285);
+  --primary: oklch(0.74 0.18 42);
+  --primary-foreground: oklch(0.10 0.02 280);
+  --secondary: oklch(0.18 0.02 280);
+  --secondary-foreground: oklch(0.95 0.008 80);
+  --muted: oklch(0.16 0.02 280);
+  --muted-foreground: oklch(0.50 0.02 280);
+  --accent: oklch(0.78 0.13 20);
+  --accent-foreground: oklch(0.10 0.02 280);
 
   --destructive: oklch(0.68 0.2 24);
   --destructive-foreground: oklch(0.99 0.005 80);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 6%);
+  --input: oklch(1 0 0 / 8%);
   --ring: oklch(0.74 0.18 42);
-
-  --sunset: oklch(0.74 0.19 45);
-  --dawn: oklch(0.82 0.13 18);
-  --mauve: oklch(0.62 0.16 320);
-  --gold: oklch(0.8 0.14 80);
-  --stone: oklch(0.97 0.008 80);
-  --stone-deep: oklch(0.16 0.018 285);
 
   --gradient-sunset: linear-gradient(135deg, oklch(0.82 0.18 60) 0%, oklch(0.72 0.2 30) 50%, oklch(0.55 0.18 320) 100%);
   --gradient-dawn: linear-gradient(180deg, oklch(0.4 0.1 30) 0%, oklch(0.3 0.08 320) 100%);
   --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
   --shadow-glow: 0 8px 32px -8px oklch(0.74 0.19 45 / 0.55);
-
-  /* Temple — Monument Valley palette */
-  --temple-sky-1: oklch(0.22 0.05 290);
-  --temple-sky-2: oklch(0.09 0.025 280);
-  --temple-stone-light: oklch(0.92 0.02 80);
-  --temple-stone-mid: oklch(0.78 0.025 70);
-  --temple-stone-shadow: oklch(0.55 0.04 305);
-  --temple-sand: oklch(0.45 0.04 60);
-  --temple-sand-deep: oklch(0.32 0.035 50);
-  --temple-amber: oklch(0.82 0.16 70);
-  --temple-mountain: oklch(0.28 0.035 295);
 }
 
+/* ── Temple piece animation ── */
 @keyframes temple-piece-in {
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .temple-piece-in { animation: temple-piece-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* ── Starfield ── */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* ── Base layer ── */
 @layer base {
   * { border-color: var(--color-border); }
   html, body {
@@ -106,14 +90,38 @@
     font-family: var(--font-sans);
     font-feature-settings: "cv11", "ss01", "ss03";
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  body {
+    /* Starfield effect — subtle dots */
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, oklch(1 0 0 / 0.15), transparent),
+      radial-gradient(1px 1px at 30% 40%, oklch(1 0 0 / 0.1), transparent),
+      radial-gradient(1px 1px at 50% 10%, oklch(1 0 0 / 0.12), transparent),
+      radial-gradient(1px 1px at 70% 60%, oklch(1 0 0 / 0.08), transparent),
+      radial-gradient(1px 1px at 85% 25%, oklch(1 0 0 / 0.14), transparent),
+      radial-gradient(1px 1px at 15% 70%, oklch(1 0 0 / 0.1), transparent),
+      radial-gradient(1px 1px at 40% 80%, oklch(1 0 0 / 0.06), transparent),
+      radial-gradient(1px 1px at 60% 35%, oklch(1 0 0 / 0.11), transparent),
+      radial-gradient(1px 1px at 90% 85%, oklch(1 0 0 / 0.09), transparent),
+      radial-gradient(1.5px 1.5px at 25% 55%, oklch(1 0 0 / 0.13), transparent),
+      radial-gradient(1px 1px at 75% 45%, oklch(1 0 0 / 0.07), transparent),
+      radial-gradient(1px 1px at 95% 5%, oklch(1 0 0 / 0.12), transparent),
+      radial-gradient(1px 1px at 5% 90%, oklch(1 0 0 / 0.1), transparent),
+      radial-gradient(1.5px 1.5px at 55% 75%, oklch(1 0 0 / 0.08), transparent),
+      radial-gradient(1px 1px at 35% 20%, oklch(1 0 0 / 0.11), transparent),
+      radial-gradient(1px 1px at 80% 70%, oklch(1 0 0 / 0.09), transparent);
+    background-size: 100% 100%;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.03em;
     font-weight: 600;
   }
 }
 
+/* ── Utilities ── */
 @utility font-display { font-family: var(--font-display); }
 @utility bg-gradient-sunset { background-image: var(--gradient-sunset); }
 @utility bg-gradient-dawn { background-image: var(--gradient-dawn); }
@@ -126,3 +134,4 @@
 @utility shadow-soft { box-shadow: var(--shadow-soft); }
 @utility shadow-glow { box-shadow: var(--shadow-glow); }
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+@utility pt-safe-top { padding-top: max(env(safe-area-inset-top), 0rem); }
