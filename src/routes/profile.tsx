@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, Trash2 } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
-import { useHabits, useProfile } from "@/hooks/useHabits";
+import { usePractices, useProfile } from "@/hooks/useHabits";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -9,19 +9,20 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { profile, setProfile } = useProfile();
-  const { habits } = useHabits();
+  const { states } = usePractices();
+  const activeCount = Object.values(states).filter((s) => s.isActive).length;
 
   function exportData() {
-    const blob = new Blob([JSON.stringify({ profile, habits }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ profile, practices: states }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "olympia-export.json"; a.click();
+    a.href = url; a.download = "naosium-export.json"; a.click();
     URL.revokeObjectURL(url);
   }
 
   function reset() {
     if (!confirm("Esborrar tots els hàbits i el perfil?")) return;
-    localStorage.removeItem("olympia.habits.v1");
+    localStorage.removeItem("olympia.practices.v1");
     localStorage.removeItem("olympia.profile.v1");
     location.reload();
   }
@@ -44,7 +45,7 @@ function ProfilePage() {
               onChange={(e) => setProfile({ ...profile, name: e.target.value })}
               className="w-full bg-transparent font-display text-xl outline-none"
             />
-            <div className="text-xs text-muted-foreground">{habits.length} hàbits actius</div>
+            <div className="text-xs text-muted-foreground">{activeCount} pràctiques actives</div>
           </div>
         </div>
 
