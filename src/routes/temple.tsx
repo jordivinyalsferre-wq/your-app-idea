@@ -42,7 +42,7 @@ function TemplePage() {
           color: STONE,
         }}
       >
-        <header className="px-6 pt-12 pb-2 relative z-10">
+        <header className="px-6 pt-8 pb-2 relative z-10">
           <div className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#8a829a" }}>
             Anastylosis
           </div>
@@ -54,7 +54,7 @@ function TemplePage() {
           </div>
         </header>
 
-        <div className="flex-1 flex items-center justify-center px-2">
+        <div className="w-full px-2 mt-2" style={{ aspectRatio: "420 / 340" }}>
           <TempleScene counts={totals} hestia={profile.hestia} />
         </div>
 
