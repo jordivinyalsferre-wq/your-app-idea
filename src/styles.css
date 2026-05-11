@@ -79,7 +79,24 @@
   --gradient-dawn: linear-gradient(180deg, oklch(0.4 0.1 30) 0%, oklch(0.3 0.08 320) 100%);
   --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -12px oklch(0 0 0 / 0.5);
   --shadow-glow: 0 8px 32px -8px oklch(0.74 0.19 45 / 0.55);
+
+  /* Temple — Monument Valley palette */
+  --temple-sky-1: oklch(0.22 0.05 290);
+  --temple-sky-2: oklch(0.09 0.025 280);
+  --temple-stone-light: oklch(0.92 0.02 80);
+  --temple-stone-mid: oklch(0.78 0.025 70);
+  --temple-stone-shadow: oklch(0.55 0.04 305);
+  --temple-sand: oklch(0.45 0.04 60);
+  --temple-sand-deep: oklch(0.32 0.035 50);
+  --temple-amber: oklch(0.82 0.16 70);
+  --temple-mountain: oklch(0.28 0.035 295);
 }
+
+@keyframes temple-piece-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.temple-piece-in { animation: temple-piece-in 1.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 @layer base {
   * { border-color: var(--color-border); }

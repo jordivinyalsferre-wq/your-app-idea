@@ -1,98 +1,77 @@
-## La Pràctica — Catàleg Tancat i Consagrat
+## Reconstrucció: el jaciment d'Olímpia en estil Monument Valley
 
-Reescriptura completa de la pantalla `/habits` (renombrada conceptualment a "La Pràctica") com a **catàleg immutable de 25 pràctiques sembrades**, sense creació lliure. L'usuari només pot **Activar/Desactivar** i parametritzar (minuts/freqüència).
+Substituïm la pantalla `/temple` (rectangles plans apilats) per una **escena isomètrica SVG** d'inspiració Monument Valley: paleta pastel mat, geometria neta, ombres planes, sense textura ni soroll. Punt de partida: **jaciment arqueològic** amb estilòbat trencat i tambors caiguts. Cada pilar (Soma, Nous, Theoria, Kosmos, Sophrosyne) controla **una de les cinc columnes** del temple.
 
----
+### Estètica
 
-### 1. Model de dades (localStorage, sense backend)
+- Projecció isomètrica pura (angles 30°). Tot dibuixat com a SVG vectorial — sense WebGL, sense imatges externes.
+- Paleta Monument Valley: cel lavanda fosc desaturat, pedra blanc trencat càlid, ombra malva, accent àmbar (Hestia), terra sorra apagada. Mat absolut, sense brillantors.
+- Animacions lentes i silencioses: aparició de cada peça amb fundit + petit desplaçament vertical (1.2s, easing suau). Mai bounce, mai partícules.
 
-Nou fitxer `src/data/practices.ts` — catàleg fix de 25 entrades, només lectura:
+### Escena i mapeig de progrés
 
-```ts
-export type Pillar = "soma" | "nous" | "theoria" | "kosmos" | "sophrosyne";
-export type Practice = {
-  id: string;        // slug fix, p.ex. "soma-dromos"
-  name: string;      // "Dromos"
-  pillar: Pillar;
-  description: string;
-  patron: string;    // "Hermes"
-};
+Cinc columnes dòriques alineades sobre l'estilòbat. Cada columna del temple = un pilar. Estats per columna en funció de `totals[pilar]`:
+
+```
+0 completions   → tambor base mig enterrat a la sorra (runa)
+1               → 1 tambor col·locat
+2               → 2 tambors
+3               → 3 tambors (columna a mitja alçada)
+4               → 4 tambors
+5               → columna sencera + capitell dòric
 ```
 
-Distribució (5 per pilar):
-- **Soma** (Cos): Dromos/Hermes, Gymnasion/Hèracles, Hydor/Posidó, Trophé/Demèter, Hypnos/Hipnos
-- **Nous** (Ment): Anagnosis/Atena, Graphē/Cal·líope, Mnēmē/Mnemòsine, Logismos/Apol·lo, Dialogos/Sòcrates
-- **Theoria** (Contemplació): Hēsychia/Hèstia, Theōria/Urània, Euchē/Zeus, Skepsis/Heràclit, Anamnēsis/Plató
-- **Kosmos** (Ordre): Taxis/Apol·lo, Oikos/Hera, Chronos/Cronos, Ergon/Hefest, Koinōnia/Hèstia
-- **Sophrosyne** (Mesura): Nēsteia/Demèter, Sigē/Harpòcrates, Enkrateia/Sòfocles, Metron/Delfos, Apochē/Pitàgores
+Quan **les 5 columnes arriben a 5+**, apareix l'**arquitrau** (biga horitzontal) amb fundit. Amb 7+ a totes, apareix el **frontó triangular**. Amb 10+ a totes, **acroteris** als extrems. Hestia (toggle) encén una flama àmbar mat al centre del frontó quan és `TRUE`.
 
-(Noms i patrons ja esbossats; el contingut definitiu es consolida al fitxer.)
+L'**estat 0 absolut** mostra: plataforma de pedra parcialment enrunada, tambors escampats al voltant de la base, una columna caiguda en horitzontal a primer terme. A mesura que progresses, la runa del terra es retira progressivament (els tambors escampats van desapareixent un a un a mesura que es "col·loquen" a les columnes).
 
-### 2. Estat de l'usuari
+### Layout de la pantalla
 
-Nova estructura paral·lela al catàleg, a `useHabits.ts`:
-
-```ts
-type PracticeState = {
-  practiceId: string;
-  isActive: boolean;
-  targetMinutes: number;       // default 10
-  frequency: "daily" | number[];
-  completions: string[];       // YYYY-MM-DD
-};
+```
+┌─────────────────────────┐
+│ ANASTYLOSIS             │  header petit existent
+│ El Temple               │
+├─────────────────────────┤
+│                         │
+│      [escena            │  ~60% alçada, fons gradient lavanda
+│       isomètrica        │  fosc → negre
+│       SVG]              │
+│                         │
+├─────────────────────────┤
+│ SOMA NOUS THE KOS SOP   │  llegenda 5 columnes amb count
+│ 003  001  000 005 002   │
+├─────────────────────────┤
+│ ▬▬▬▬▬ Hestia      TRUE  │  barra àmbar existent
+└─────────────────────────┘
 ```
 
-- `usePractices()`: retorna `{ catalog, states, toggleActive, setParams, complete }`.
-- Persistència `olympia.practices.v1`.
-- Migració: les `Habit` antigues queden ignorades (es preserva el localStorage però no es mostra). El home (`/`) i `/temple` passen a llegir `states` actius.
+### Detalls tècnics
 
-### 3. Pantalla `/habits` → "La Pràctica"
+- **Nou component**: `src/components/TempleScene.tsx` — rep `counts: Record<Pillar, number>` i `hestia: boolean`. Renderitza un únic `<svg viewBox="0 0 400 320">` amb capes z-ordenades de fons cap al davant: cel → muntanyes llunyanes (siluetes planes) → terra/sorra → estilòbat → tambors caiguts (condicional) → 5 columnes (cadascuna composta per `<DoricColumn drums={n} />`) → arquitrau → frontó → acroteris → flama Hestia.
+- **Geometria isomètrica**: helpers `iso(x, y, z)` que projecten coordenades 3D a 2D amb la matriu isomètrica estàndard. Cada tambor és un cilindre baix dibuixat com 2 el·lipses + rectangle lateral amb tres tons de la paleta (top/light/shadow).
+- **Animació**: cada peça nova entra amb classe CSS `temple-piece-in` (1.2s fade + translateY(-6px) → 0). Delay escalonat petit (40ms) entre tambors d'una mateixa columna quan se'n col·loquen múltiples a la vegada.
+- **Paleta** (afegir tokens a `src/styles.css` dins `:root`):
+  - `--temple-sky-1: oklch(0.18 0.04 290)` (lavanda fosc)
+  - `--temple-sky-2: oklch(0.08 0.02 280)` (negre violaci)
+  - `--temple-stone-light: oklch(0.92 0.02 80)`
+  - `--temple-stone-mid: oklch(0.78 0.025 70)`
+  - `--temple-stone-shadow: oklch(0.55 0.03 300)` (malva)
+  - `--temple-sand: oklch(0.45 0.04 60)`
+  - `--temple-amber: oklch(0.78 0.15 70)` (Hestia)
+- **`src/routes/temple.tsx`**: substitueix el bloc actual de `<ColumnView>` × 5 i les `<style>` inline pel nou `<TempleScene counts={totals} hestia={profile.hestia} />`. Conserva header, llegenda inferior amb counts, i el toggle Hestia. Elimina la funció `ColumnView`.
+- **Fons** del `MobileShell`: gradient vertical `--temple-sky-1` → `--temple-sky-2` substituint el `#050410` pla.
 
-Reescriptura completa de `src/routes/habits.tsx`:
+### Restriccions estrictes (mantenim el to del manifest)
 
-- Fons `#050410`, text `#F0EBE0`, font Inter (ja al projecte).
-- Header sobri: petit kicker "ΚΑΤΑΛΟΓΟΣ", títol "La Pràctica", sense botó `+`.
-- 5 seccions verticals, una per Pilar. Cada secció:
-  - Títol pilar en versaletes amb la traducció minúscula al costat (p.ex. `SOMA · Cos`).
-  - Línia divisòria 1px `#1a1830`.
-  - Llista de 5 pràctiques. Cada fila:
-    - Nom + patró petit a sota (`Hermes`).
-    - Toggle switch minimalista a la dreta: actiu `#F0A05A`, inactiu `#6A5E4D`. Sense ombres, sense rebot.
-  - En activar, s'expandeix sota la fila un panell **pla, sense vora**:
-    - "Minuts": input numèric net (sense fletxes, alineat a la dreta).
-    - "Freqüència": Diari / Dies (chips Dl–Dg minimalistes).
-  - Sense botó "desa": canvis instantanis a `states`.
+- Prohibit: confeti, "level up", barres de progrés gamificades, números grans flotants, glows neon, partícules.
+- Tipografia: cap canvi.
+- Cap sound, cap haptic.
+- L'escena és **estàtica** un cop renderitzada — només transicions d'aparició quan canvia el comptatge.
 
-### 4. Lèxic i guardarails
+### Arxius afectats
 
-- Substituir tot "Hàbit"/"Add task"/"Done" per **"Pràctica"**, **"Activa la pràctica"**, **"Consagra"**.
-- Eliminar `CreateHabitSheet` de la navegació de `/habits` (es manté el fitxer per `/habits/$id` si convé, o es retira).
-- Sense colors d'etiqueta, sense barres de progrés, sense swipe-to-delete, sense emojis a aquesta pantalla.
+- crear `src/components/TempleScene.tsx`
+- editar `src/routes/temple.tsx`
+- editar `src/styles.css` (afegir tokens `--temple-*` i keyframe `temple-piece-in`)
 
-### 5. Ajustos col·laterals
-
-- `BottomTabBar`: etiqueta "Hàbits" → "Pràctica".
-- `/` (home): la llista de "avui" passa a iterar pràctiques actives `isDueToday`. Targetes simplificades (sense emoji ni color tag, només nom + toggle de completar).
-- `/temple`: `totals[pillar]` ara compta completions de pràctiques actives per pilar; afegir cinquena columna `sophrosyne`.
-- Eliminar selector de "Pilar" lliure de `CreateHabitSheet` (ja no s'usa per crear).
-
-### 6. Detalls tècnics
-
-- Tot client-side (localStorage). Sense Lovable Cloud.
-- Tipografia: assegurar que `font-sans` resol a Inter a `styles.css` (ja és el cas).
-- Els components UI shadcn no s'usen aquí — toggle i inputs custom per mantenir l'austeritat.
-
----
-
-### Fitxers afectats
-
-- **Nou**: `src/data/practices.ts`
-- **Nou**: `src/components/PracticeRow.tsx` (fila + panell expandit)
-- **Reescrit**: `src/routes/habits.tsx`
-- **Editat**: `src/hooks/useHabits.ts` (afegir `usePractices`, mantenir l'antic per compatibilitat)
-- **Editat**: `src/routes/index.tsx` (llegir pràctiques actives)
-- **Editat**: `src/routes/temple.tsx` (5 columnes, comptar per pràctica)
-- **Editat**: `src/components/BottomTabBar.tsx` (etiqueta)
-- **Possiblement retirat**: `CreateHabitSheet` del flux de `/habits`
-
-Vols que procedeixi així, o ajustes alguna cosa (noms del catàleg, distribució de patrons, mantenir compatibilitat amb hàbits antics al home)?
+Cap canvi a la lògica de pràctiques, dades, ni a la resta de pantalles.
