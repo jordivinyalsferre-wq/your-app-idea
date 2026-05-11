@@ -106,10 +106,22 @@ function TempleHome({ name }: { name: string }) {
   }, [states]);
 
   const date = new Date().toLocaleDateString("ca-ES", { weekday: "long", day: "numeric", month: "long" });
+  const hour = new Date().getHours();
+
+  // Time-of-day background gradient
+  const skyGradient = useMemo(() => {
+    if (hour >= 22 || hour < 5) return "linear-gradient(180deg, #08060F 0%, #0E0B1A 40%, #14101F 100%)";
+    if (hour < 7) return "linear-gradient(180deg, #1A1030 0%, #2A1838 30%, #4A2840 60%, #D08050 100%)";
+    if (hour < 10) return "linear-gradient(180deg, #2A3050 0%, #5080A0 40%, #90C0D0 80%, #E8D8B0 100%)";
+    if (hour < 14) return "linear-gradient(180deg, #3858A0 0%, #58A0D0 40%, #88C8E0 100%)";
+    if (hour < 17) return "linear-gradient(180deg, #3050A0 0%, #5888C0 40%, #90B0D0 80%, #E0D0B0 100%)";
+    if (hour < 20) return "linear-gradient(180deg, #1A1828 0%, #2A1830 30%, #603848 50%, #E08858 80%, #F0C060 100%)";
+    return "linear-gradient(180deg, #0A0818 0%, #181028 40%, #201830 100%)";
+  }, [hour]);
 
   return (
-    <MobileShell>
-      <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <MobileShell fullscreen>
+      <div className="h-full flex flex-col relative" style={{ background: skyGradient }}>
         {/* Header — minimal, floating */}
         <header className="relative z-10 px-6 pt-safe-top">
           <div className="flex items-center justify-between pt-4">
@@ -132,11 +144,11 @@ function TempleHome({ name }: { name: string }) {
         <div className="flex-1 flex items-center justify-center px-4 -mt-4">
           <motion.div
             className="w-full max-w-md"
-            style={{ aspectRatio: "420 / 360" }}
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            style={{ aspectRatio: "440 / 440" }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
           >
-            <TempleScene counts={totals} hestia={profile.hestia} />
+            <TempleScene counts={totals} hestia={profile.hestia} hour={hour} />
           </motion.div>
         </div>
 
@@ -151,7 +163,7 @@ function TempleHome({ name }: { name: string }) {
         </div>
 
         {/* Bottom drawer — today's practices */}
-        <div className="relative z-10 mt-4 px-4 pb-28">
+        <div className="relative z-10 mt-3 px-4 pb-20">
           <button
             onClick={() => setExpanded(!expanded)}
             className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.06] backdrop-blur-xl"
