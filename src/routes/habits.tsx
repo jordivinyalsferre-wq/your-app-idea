@@ -1,34 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { PILLAR_META, PILLAR_ORDER, PRACTICES, type Practice } from "@/data/practices";
 import { usePractices, type PracticeState, type HabitFrequency } from "@/hooks/useHabits";
 
 export const Route = createFileRoute("/habits")({
   head: () => ({
-    meta: [{ title: "La Pràctica — Olympía" }],
+    meta: [
+      { title: "La Pràctica — Naosium" },
+      { name: "description", content: "Vint-i-cinc vots clàssics agrupats en cinc pilars. Activa només els que assumeixes." },
+      { property: "og:title", content: "La Pràctica — Naosium" },
+      { property: "og:description", content: "El catàleg dels vint-i-cinc vots: Soma, Nous, Theoria, Kosmos, Sophrosyne." },
+    ],
   }),
   component: PracticePage,
 });
 
-const BG = "#050410";
-const TEXT = "#F0EBE0";
-const MUTED = "#6A5E4D";
-const ACTIVE = "#F0A05A";
-const DIVIDER = "#1a1830";
-
 function PracticePage() {
   return (
     <MobileShell>
-      <div className="min-h-screen pb-32" style={{ background: BG, color: TEXT, fontFamily: "Inter, sans-serif" }}>
+      <div className="min-h-screen pb-32 bg-background text-foreground">
         <header className="px-6 pt-12 pb-6">
-          <div className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#5a5566" }}>
+          <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
             ΚΑΤΑΛΟΓΟΣ
           </div>
-          <h1 className="text-2xl mt-1 font-medium" style={{ letterSpacing: "0.01em" }}>
-            La Pràctica
-          </h1>
-          <p className="text-[12px] mt-2 leading-relaxed" style={{ color: "#7a7488" }}>
+          <h1 className="font-display text-2xl mt-1">La Pràctica</h1>
+          <p className="text-[12px] mt-2 leading-relaxed text-muted-foreground">
             Vint-i-cinc vots clàssics. Activa només els que assumeixes.
           </p>
         </header>
@@ -37,11 +33,11 @@ function PracticePage() {
           const items = PRACTICES.filter((p) => p.pillar === pillarId);
           return (
             <section key={pillarId} className="px-6 mt-2 mb-8">
-              <div className="flex items-baseline justify-between pb-2" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
-                <h2 className="text-[11px] tracking-[0.3em] uppercase" style={{ color: TEXT }}>
+              <div className="flex items-baseline justify-between pb-2 border-b border-border">
+                <h2 className="text-[11px] tracking-[0.3em] uppercase text-foreground">
                   {PILLAR_META[pillarId].label}
                 </h2>
-                <span className="text-[10px] tracking-[0.2em] uppercase" style={{ color: "#5a5566" }}>
+                <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
                   {PILLAR_META[pillarId].meaning}
                 </span>
               </div>
@@ -62,19 +58,17 @@ function PracticeRow({ practice }: { practice: Practice }) {
   const { getState, setState, toggleActive } = usePractices();
   const s = getState(practice.id);
   return (
-    <li style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+    <li className="border-b border-border">
       <div className="flex items-center justify-between py-4">
         <div className="min-w-0 pr-4">
-          <div className="text-[15px]" style={{ color: TEXT }}>{practice.name}</div>
-          <div className="text-[11px] mt-0.5" style={{ color: "#7a7488" }}>
-            {practice.patron} · <span style={{ color: "#5a5566" }}>{practice.description}</span>
+          <div className="text-[15px] text-foreground">{practice.name}</div>
+          <div className="text-[11px] mt-0.5 text-muted-foreground">
+            {practice.patron} <span className="opacity-70">· {practice.description}</span>
           </div>
         </div>
         <Toggle active={s.isActive} onChange={() => toggleActive(practice.id)} />
       </div>
-      {s.isActive && (
-        <ParamPanel state={s} onChange={(patch) => setState(practice.id, patch)} />
-      )}
+      {s.isActive && <ParamPanel state={s} onChange={(patch) => setState(practice.id, patch)} />}
     </li>
   );
 }
@@ -84,24 +78,17 @@ function Toggle({ active, onChange }: { active: boolean; onChange: () => void })
     <button
       onClick={onChange}
       aria-pressed={active}
-      className="relative shrink-0"
+      className="relative shrink-0 h-[18px] w-9 transition-colors"
       style={{
-        width: 36,
-        height: 18,
-        background: active ? ACTIVE : "transparent",
-        border: `1px solid ${active ? ACTIVE : MUTED}`,
-        transition: "background 200ms ease, border-color 200ms ease",
+        background: active ? "var(--primary)" : "transparent",
+        border: `1px solid ${active ? "var(--primary)" : "var(--muted-foreground)"}`,
       }}
     >
       <span
+        className="absolute top-[2px] h-3 w-3 transition-all"
         style={{
-          position: "absolute",
-          top: 2,
           left: active ? 20 : 2,
-          width: 12,
-          height: 12,
-          background: active ? "#050410" : MUTED,
-          transition: "left 200ms ease, background 200ms ease",
+          background: active ? "var(--primary-foreground)" : "var(--muted-foreground)",
         }}
       />
     </button>
@@ -124,24 +111,24 @@ function ParamPanel({ state, onChange }: { state: PracticeState; onChange: (patc
   };
 
   return (
-    <div className="pb-5 pl-1" style={{ color: TEXT }}>
+    <div className="pb-5 pl-1">
       <div className="flex items-center justify-between py-2">
-        <span className="text-[10px] tracking-[0.25em] uppercase" style={{ color: "#7a7488" }}>Minuts</span>
+        <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">Minuts</span>
         <input
           type="number"
           min={1}
           max={999}
           value={state.targetMinutes}
           onChange={(e) => onChange({ targetMinutes: Math.max(1, Number(e.target.value) || 1) })}
-          className="w-16 text-right bg-transparent outline-none text-[15px] tabular-nums"
-          style={{ color: ACTIVE, appearance: "textfield" }}
+          className="w-16 text-right bg-transparent outline-none text-[15px] tabular-nums text-primary"
+          style={{ appearance: "textfield" }}
         />
       </div>
       <div className="flex items-center justify-between py-2">
-        <span className="text-[10px] tracking-[0.25em] uppercase" style={{ color: "#7a7488" }}>Freqüència</span>
+        <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">Freqüència</span>
         <div className="flex gap-3 text-[11px] tracking-[0.18em] uppercase">
-          <button onClick={() => setFreq("daily")} style={{ color: isDaily ? ACTIVE : MUTED }}>Diari</button>
-          <button onClick={() => setFreq([1, 2, 3, 4, 5])} style={{ color: !isDaily ? ACTIVE : MUTED }}>Dies</button>
+          <button onClick={() => setFreq("daily")} className={isDaily ? "text-primary" : "text-muted-foreground"}>Diari</button>
+          <button onClick={() => setFreq([1, 2, 3, 4, 5])} className={!isDaily ? "text-primary" : "text-muted-foreground"}>Dies</button>
         </div>
       </div>
       {!isDaily && (
@@ -152,8 +139,8 @@ function ParamPanel({ state, onChange }: { state: PracticeState; onChange: (patc
               <button
                 key={d.v}
                 onClick={() => toggleDay(d.v)}
-                className="text-[10px] tracking-[0.15em] uppercase py-1 px-2"
-                style={{ color: on ? ACTIVE : MUTED, borderBottom: `1px solid ${on ? ACTIVE : "transparent"}` }}
+                className={`text-[10px] tracking-[0.15em] uppercase py-1 px-2 ${on ? "text-primary" : "text-muted-foreground"}`}
+                style={{ borderBottom: `1px solid ${on ? "var(--primary)" : "transparent"}` }}
               >
                 {d.l}
               </button>
