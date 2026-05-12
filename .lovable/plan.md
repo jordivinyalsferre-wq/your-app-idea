@@ -1,39 +1,74 @@
-# Fer visible el temple
+## Revisió del codi
 
-## Diagnòstic
+He repassat l'estat actual del repositori (rutes, components, hooks i estils). Aquí tens el que he trobat, ordenat per prioritat.
 
-A `/temple` actualment l'escena isomètrica es renderitza, però:
+---
 
-1. El SVG ocupa només una franja central petita amb molt de buit a sobre i a sota.
-2. Amb 0 progrés, només es veuen tambors escampats i una columna caiguda — la silueta del temple no és reconeixible. L'usuari obre la pantalla i no entén què està construint.
-3. L'escena queda visualment desplaçada a la dreta perquè l'origen isomètric (`ORIGIN_X=200`) i la geometria de les 5 columnes (slots 0..4 × 1.6) no estan centrades respecte al `viewBox`.
+### 🔴 Bugs reals
 
-## Canvis
+**1. Hydration mismatch a `/` (visible a la consola)**
+`src/routes/index.tsx` decideix què renderitzar a partir de:
+- `useProfile()` → llegeix `localStorage` (buit al servidor → mostra `Onboarding`; ple al client → mostra `TempleHome`). L'arbre sencer canvia entre SSR i client.
+- `new Date().getHours()` i `new Date().toLocaleDateString("ca-ES", …)` → el gradient del cel i la data poden diferir entre servidor i client.
 
-### 1. `TempleScene.tsx` — temple fantasma + recentrat
+Això provoca l'error que veus: `Hydration failed because the server rendered HTML didn't match the client`.
 
-- Calcular el centre real de la geometria (estilòbat) i recol·locar `ORIGIN_X`/`ORIGIN_Y` perquè el conjunt quedi centrat al `viewBox 0 0 400 320`. Ampliar el `viewBox` si cal (p. ex. `0 0 420 340`) per no retallar pediment ni acroteris.
-- **Estat fantasma**: dibuixar SEMPRE la silueta completa del temple (5 columnes senceres + arquitrau + frontó) amb opacitat baixa (~0.08–0.12) i sense ombres laterals — només contorn pla en `--temple-stone-shadow`. Per sobre, dibuixar les peces "reals" sòlides segons `counts`. Així l'usuari veu d'entrada el monument que està reconstruint.
-- Reduir la quantitat de tambors escampats inicials (de 5 a 3) i treure la columna caiguda horitzontal: distreuen i tapen la silueta.
-- Mantenir l'animació `temple-piece-in` només per a peces reals, mai per al fantasma.
+**2. `usePractices()` i `useProfile()` no comparteixen estat entre instàncies**
+Cada component que crida el hook té el seu propi `useState`. A `habits.tsx`, `PracticeRow` invoca `usePractices()` per cada fila → 25 còpies independents de l'estat. Quan toggles una pràctica, les altres files (i el comptador a `/profile`) NO es re-renderitzen amb dades fresques fins a remount. Cal un store compartit (context + reducer, Zustand, o un esdeveniment pub/sub damunt de `localStorage`).
 
-### 2. `routes/temple.tsx` — donar alçada a l'escena
+---
 
-- Treure el `flex-1` ambigu i fixar un contenidor amb `aspect-ratio: 420/340` i `width: 100%`, centrat horitzontalment amb un padding lateral mínim. Així el SVG omple l'amplada del mòbil i té alçada proporcional, sense buits.
-- Reduir el padding superior del header (`pt-12` → `pt-8`) i el gap entre header i escena perquè el temple aparegui més amunt.
-- La graella de pilars i el toggle Hestia es queden tal com estan, sota l'escena.
+### 🟠 Codi mort i restes de refactors anteriors
 
-### 3. Sense canvis a
+- `src/routes/temple.tsx` → només és un `redirect("/")`. Es pot eliminar; el bottom-tab ja apunta a `/`.
+- `src/components/ProgressRing.tsx` → no l'utilitza ningú (`rg` confirma 0 imports). Es pot eliminar.
+- `useHabits.ts` re-exporta `Pillar` i defineix `PILLARS` que ningú consumeix. Netejar.
+- Claus de localStorage (`olympia.profile.v1`, `olympia.practices.v1`) conserven el nom antic "olympia" tot i que la marca actual és **Naosium**. No cal renombrar (trencaria les dades existents) però val la pena documentar-ho o fer migració.
 
-- Lògica de pràctiques, dades, hooks.
-- Paleta `--temple-*` (ja funciona bé al render actual).
-- Mapeig de progrés per pilar.
+---
 
-## Restriccions (es mantenen)
+### 🟡 Inconsistències de disseny
 
-Sense confeti, sense glow neon, sense partícules, sense text "level up". El fantasma és un contorn estàtic, mat, gairebé imperceptible — només per orientar la mirada.
+- `src/routes/habits.tsx` usa colors **hardcodejats** (`BG = "#050410"`, `TEXT`, `MUTED`, `ACTIVE`, `DIVIDER`) en lloc de tokens semàntics. Trenca la regla del design system i fa que la pàgina no respongui a canvis globals.
+- `src/routes/profile.tsx` té estètica de **card genèric shadcn** (avatar gradient, "Perfil", botons rounded-3xl) que no encaixa amb l'aesthetic Monument-Valley/temple grec de la home. Desentona molt.
+- `Onboarding` (dins `index.tsx`) embolica `min-h-screen` dins de `MobileShell` que ja és `min-h-[100dvh]` → doble alçada / padding redundant.
 
-## Arxius afectats
+---
 
-- editar `src/components/TempleScene.tsx`
-- editar `src/routes/temple.tsx`
+### 🟢 Millores opcionals (no bloquegen)
+
+- **`TempleScene.tsx`** té ~300 línies amb paleta, helpers iso, sub-components (`Box`, `Tree`, `Waterfall`, `Column`, `FallenColumn`) i escena tot junt. Funciona, però es podria partir en `temple/iso.ts`, `temple/palette.ts`, `temple/parts.tsx` per facilitar-ne l'edició.
+- **SEO**: només `index.tsx` defineix `head()` complet. `habits.tsx` només té title; `profile.tsx` no en té cap. Afegir títols/descripcions únics a cadascuna.
+- A `TempleScene` la condició `a10` (totes les pilars ≥10 per dibuixar acroteris) és molt rígida; potser val la pena fer-ho per columna individual com ja fas amb el capitell.
+
+---
+
+### Pla d'acció proposat (per ordre)
+
+1. **Arreglar la hydration**: marcar `TempleHome` com a `client-only` (carrega diferida amb `dynamic`/`useEffect`-mounted guard) o renderitzar un esquelet estàtic al servidor i hidratar la part dependent de `Date`/`localStorage` només al client.
+2. **Store compartit per a `practices` i `profile`**: introduir un `PracticesProvider` amb `useReducer` i exposar `usePractices()` que llegeix del context. Així `/habits` i `/profile` reflecteixen els canvis al moment.
+3. **Eliminar codi mort**: `src/routes/temple.tsx`, `src/components/ProgressRing.tsx`, exports no utilitzats a `useHabits.ts`.
+4. **Migrar `habits.tsx` a tokens** del design system (`bg-background`, `text-foreground`, `border-border`, accent via `--primary`).
+5. **Reescriure `/profile`** amb estètica temple (paleta i tipografia coherent amb la home, no shadcn cards genèriques).
+6. **SEO** a habits i profile.
+7. **(Opcional)** Refactor de `TempleScene` en mòduls.
+
+---
+
+### Tècnic
+
+```text
+src/
+├─ routes/
+│  ├─ index.tsx       ← causa hydration mismatch (Date + localStorage)
+│  ├─ habits.tsx      ← colors hardcoded; PracticeRow té estat duplicat
+│  ├─ profile.tsx     ← estètica desentonada; sense head()
+│  └─ temple.tsx      ← redirect inútil → eliminar
+├─ components/
+│  ├─ TempleScene.tsx ← gros però funcional (refactor opcional)
+│  └─ ProgressRing.tsx ← no usat → eliminar
+└─ hooks/
+   └─ useHabits.ts    ← estat NO compartit entre instàncies (bug)
+```
+
+Vols que apliqui aquest pla sencer, o prefereixes començar per un punt concret (recomano #1 + #2, que són els bugs reals)?
