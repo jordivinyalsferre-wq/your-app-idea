@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronUp } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { TempleScene } from "@/components/TempleScene";
 import { greeting, isPracticeDueToday, todayISO, usePractices, useProfile } from "@/hooks/useHabits";
 import { PRACTICES, PILLAR_META, PILLAR_ORDER, type Pillar } from "@/data/practices";
+
+function useHydrated() {
+  const [h, setH] = useState(false);
+  useEffect(() => setH(true), []);
+  return h;
+}
 
 export const Route = createFileRoute("/")(
   {
@@ -23,7 +29,11 @@ export const Route = createFileRoute("/")(
 );
 
 function Index() {
+  const hydrated = useHydrated();
   const { profile, setProfile } = useProfile();
+  // Avoid hydration mismatch: SSR renders a neutral shell; real content
+  // (which depends on localStorage and current time) appears post-mount.
+  if (!hydrated) return <MobileShell fullscreen><div className="h-full bg-background" /></MobileShell>;
   if (!profile.onboarded) return <Onboarding onDone={(name) => setProfile({ ...profile, name, onboarded: true })} />;
   return <TempleHome name={profile.name} />;
 }
